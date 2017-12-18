@@ -11,20 +11,30 @@
 #include "api.c"
 
 int shmid;
-int semid;
+
+int semMutexId;
+int semEmptyId;
+int semFullId;
+
 queue *shm;
 
 
-void initializeQueues(int semid, queue *shm_param);
+void initializeQueues(int semMutexId, queue *shm_param);
 
 int main()
 {
 
 
     getMemory(&shmid, &shm);
-    getSemaphores(&semid);
+    getSemaphores(&semMutexId, mutexKey);
+    getSemaphores(&semEmptyId, semEmptyKey);
+    getSemaphores(&semFullId, semFullKey);
     
-    initializeQueues(semid, shm);
+    semctl(semEmptyId, 0, SETVAL, 20);
+    semctl(semFullId, 0, SETVAL, 0);
+    semctl(semMutexId, 0, SETVAL, 1);
+
+    initializeQueues(semMutexId, shm);
 
     int index;
 
@@ -38,22 +48,23 @@ int main()
         m.letter3 = getRandomChar(0);
         m.priority = 3;
 
-        // nieblokujace sprawdzenie
-        if((index = insertMessage(QUEUE_A, shm, m, semid)) == -1){ //liczba miejsc zapelnionych to u nas to samo co indeks gdzie wstawiamy message
-            break;
-        }
-
         
+        semDown(semEmptyId);
+        semDown(semMutexId);
+        // nieblokujace sprawdzenie
+        if((index = insertMessage(QUEUE_A, shm, m)) == -1){ //liczba miejsc zapelnionych to u nas to samo co indeks gdzie wstawiamy message
+           // break;
+        }
         printf("taken in QA: %d, inserting...\n", index);
-       
+        semUp(semMutexId);
+        semUp(semFullId);
+        
+
         sleep(1);
     }
-    printf("Done with QUEUE A");
-
-    
 
     removeMemory(); //czy tylko jeden proces moze zrobic removeMemory() czy wszystkie musza?
-    removeSemaphores();
+    removeSemaphores(mutexKey);
     
 
     return 0;

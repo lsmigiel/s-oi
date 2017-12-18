@@ -14,7 +14,7 @@
 
 void getMemory(int *shmid_param, queue** shm_param){ 
 
-    if ((*shmid_param = shmget(key, QUEUES_SIZE,  IPC_CREAT | 0777)) < 0) {
+    if ((*shmid_param = shmget(shmKey, QUEUES_SIZE,  IPC_CREAT | 0777)) < 0) {
         perror("shmget");
        return;
     }
@@ -23,7 +23,7 @@ void getMemory(int *shmid_param, queue** shm_param){
 
 }
 
-int getSemaphores(int* semid)
+int getSemaphores(int* semid, int semKey)
 {
     /*
      * If IPC_CREAT is used alone, semget() either returns the semaphore set identifier for a newly created set,
@@ -37,10 +37,10 @@ int getSemaphores(int* semid)
 
 
 void removeMemory(){
-    shmctl(key, 0, IPC_RMID);
+    shmctl(shmKey, 0, IPC_RMID);
 }
 
-void removeSemaphores()
+void removeSemaphores(int semKey)
 {
      semctl(semKey, 0, IPC_RMID);
 }
@@ -96,9 +96,9 @@ void semUp(int semid_param){
 /*
 return index of newly inserted messages. If failed, returns -1;
 */
-int insertMessage(int queueNumber, queue* shm_param, message m, int semid){
+int insertMessage(int queueNumber, queue* shm_param, message m){
  ///polaczyc moment sprawdzenia wolnego miejsca i ewentualnego wstawienia wiadomosci
-    semDown(semid);
+    // semDown(semid);
 
     int i, takenEntries = 0;
 
@@ -116,7 +116,7 @@ int insertMessage(int queueNumber, queue* shm_param, message m, int semid){
 
     shm_param[queueNumber].messages[takenEntries] = m;
 
-    semUp(semid);
+    // semUp(semid);
 
     return takenEntries;
 }
@@ -135,8 +135,8 @@ char getRandomChar(int mode){
 
 
 //get and remove message at index 0 from queue 
-message getMessageFromQueue(int queueNumber, queue* shm_param, int semid){
-    semDown(semid);
+message getMessageFromQueue(int queueNumber, queue* shm_param){
+    // semDown(semid);
 
     int i=0, takenEntries = 0;
 
@@ -151,7 +151,7 @@ message getMessageFromQueue(int queueNumber, queue* shm_param, int semid){
     }
 
 
-    semUp(semid);
+    // semUp(semid);
 
     return m;
 }
