@@ -16,4 +16,9 @@ typedef struct {
 } queue;
 
 queue queues[3]; //kolejka A, B lub C. sizeof(queues)==480
+
 int key = 89999;
+int semKey = 32;
+
+
+
