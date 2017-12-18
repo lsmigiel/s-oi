@@ -23,13 +23,14 @@ void getMemory(int *shmid_param, queue** shm_param){
 
 }
 
+
 int getSemaphores(int* semid, int semKey)
 {
     /*
      * If IPC_CREAT is used alone, semget() either returns the semaphore set identifier for a newly created set,
      * or returns the identifier for a set which exists with the same key value.
      */
-    if((*semid = semget( semKey, 1, IPC_CREAT | 0777 )) == -1)
+    if((*semid = semget( semKey, 3, IPC_CREAT | 0777 )) == -1) //tworzymy 3 mutexy, 3 fulle lub 3 empty
     {
         return(-1); 
     }
@@ -45,13 +46,13 @@ void removeSemaphores(int semKey)
      semctl(semKey, 0, IPC_RMID);
 }
 
-void semDown(int semid_param){
+void semDown(int semid_param, int queueNumber){
 
     struct sembuf sem;
     int semopRet;
 
     /* Which semaphore in the semaphore array : */
-    sem.sem_num = 0;
+    sem.sem_num = queueNumber;
     /* Which operation? Add -1 to semaphore value : */
     sem.sem_op = -1;
     /* Set the flag so we will wait : */
@@ -68,13 +69,13 @@ void semDown(int semid_param){
     }
 }
 
-void semUp(int semid_param){
+void semUp(int semid_param, int queueNumber){
 
     struct sembuf sem;
     int semopRet;
     
     /* Which semaphore in the semaphore array : */
-    sem.sem_num = 0;
+    sem.sem_num = queueNumber;
     /* Which operation? Add 1 to semaphore value : */
     sem.sem_op = 1;
     /* Set the flag so we will wait : */
@@ -144,19 +145,21 @@ message getMessageFromQueue(int queueNumber, queue* shm_param){
     //if takenEntries > 0....
 
     int indexToTakeMessage = 0;
-
     for(i = 0; i<=19; i++){
         if(shm_param[queueNumber].messages[i].priority == 1){
             indexToTakeMessage = i;
+            break;
         }
-
     }
     message m = shm_param[queueNumber].messages[indexToTakeMessage];
+    printf("Removing message on index %d from %s: (%d %c%c%c)\n",indexToTakeMessage,queueName[queueNumber], m.priority, m.letter1, m.letter2, m.letter3);
 
-    i = 0;
+
+    //moving other messages to the front of the queue:
+    i = indexToTakeMessage;
     while(i<19 && shm_param[queueNumber].messages[i+1].priority != -1){
         shm_param[queueNumber].messages[i] = shm_param[queueNumber].messages[i+1]; 
-        shm_param[queueNumber].messages[i+1].priority = -1;
+        shm_param[queueNumber].messages[i+1].priority = -1; //the last is empty
         i++;
     }
 

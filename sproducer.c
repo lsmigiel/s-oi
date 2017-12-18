@@ -7,6 +7,7 @@
 #include <zconf.h>
 #include <stdbool.h>
 #include <time.h>
+
 // #include "data.h"
 #include "api.c"
 
@@ -24,8 +25,8 @@ queue *shm;
 //running: ./producer queueNumber
 int main(int argc, char *argv[])
 {
-    if(argc != 2){printf("Specify queue nnumber: 0, 1, 2 (ie A, B, C)\n"); return 0;}
-    int queueNumber = atoi(argv[1]);
+
+    int queueNumber;
 
     getMemory(&shmid, &shm);
     getSemaphores(&semMutexId, mutexKey);
@@ -37,17 +38,16 @@ int main(int argc, char *argv[])
     srand(time(NULL));
 
     while(true){
-
+        queueNumber = QUEUE_A+rand() %3 ;//losowo wybrana kolejka
         message m;
         m.letter1 = getRandomChar(0);
         m.letter2 = getRandomChar(0);
         m.letter3 = getRandomChar(0);
-        m.priority = 0;
-        
+        m.priority = 1;
         semDown(semEmptyId, queueNumber);
         semDown(semMutexId, queueNumber);
         // nieblokujace sprawdzenie
-        if((index = insertMessage(queueNumber, shm, m)) == -1){ //liczba miejsc zapelnionych to u nas to samo co indeks gdzie wstawiamy message
+        if((index = insertMessage(queueNumber, shm, m)) == -1){ //losowo wybrana kolejka
            // break;
         }
         printf("full places in %s: %2d, inserting message: (%d %c%c%c)\n",queueName[queueNumber], index, m.priority, m.letter1, m.letter2, m.letter3);
@@ -55,13 +55,9 @@ int main(int argc, char *argv[])
         semUp(semFullId, queueNumber);
         
 
-        sleep(2);
-
+        sleep(3);
     }
 
-    removeMemory(); //czy tylko jeden proces moze zrobic removeMemory() czy wszystkie musza?
-    removeSemaphores(mutexKey);
-    
 
     return 0;
 }
