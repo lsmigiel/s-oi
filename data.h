@@ -18,6 +18,10 @@ typedef struct {
 queue queues[3]; //kolejka A, B lub C. sizeof(queues)==480
 
 int shmKey = 89999; //shm
+
 int mutexKey = 32; //mutex
 int semFullKey = 33;
 int semEmptyKey = 34;
+
+
+char *queueName[3] = {"QUEUE_A", "QUEUE_B", "QUEUE_C"}; //tylko do printfa potrzebne

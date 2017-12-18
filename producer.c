@@ -21,9 +21,12 @@ queue *shm;
 
 void initializeQueues(int semMutexId, queue *shm_param);
 
-int main()
-{
 
+//running: ./producer [queueNumber]
+int main(int argc, char *argv[])
+{
+    if(argc != 2){printf("Specify queue nnumber: 0, 1, 2 (ie A, B, C)\n"); return 0;}
+    int queueNumber = atoi(argv[1]);
 
     getMemory(&shmid, &shm);
     getSemaphores(&semMutexId, mutexKey);
@@ -55,7 +58,7 @@ int main()
         if((index = insertMessage(QUEUE_A, shm, m)) == -1){ //liczba miejsc zapelnionych to u nas to samo co indeks gdzie wstawiamy message
            // break;
         }
-        printf("taken in QA: %d, inserting...\n", index);
+        printf("full places in %s: %d, inserting another message...\n",queueName[queueNumber], index);
         semUp(semMutexId);
         semUp(semFullId);
         
@@ -76,7 +79,7 @@ int main()
 void initializeQueues(int semid, queue *shm_param){
     int i, j;
 
-    printf("Initializing queues...");
+    printf("Initializing queues...\n");
 
     semDown(semid);
 
