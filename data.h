@@ -21,5 +21,3 @@ int shmKey = 89999; //shm
 int mutexKey = 32; //mutex
 int semFullKey = 33;
 int semEmptyKey = 34;
-
-

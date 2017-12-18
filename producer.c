@@ -46,7 +46,7 @@ int main()
         m.letter1 = getRandomChar(0);
         m.letter2 = getRandomChar(0);
         m.letter3 = getRandomChar(0);
-        m.priority = 3;
+        m.priority = 1;
 
         
         semDown(semEmptyId);

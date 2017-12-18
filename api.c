@@ -139,9 +139,19 @@ message getMessageFromQueue(int queueNumber, queue* shm_param){
     // semDown(semid);
 
     int i=0, takenEntries = 0;
-
+    // int normalPriorityPresent;
+    // int 
     //if takenEntries > 0....
-    message m = shm_param[queueNumber].messages[0];
+
+    int indexToTakeMessage = 0;
+
+    for(i = 0; i<=19; i++){
+        if(shm_param[queueNumber].messages[i].priority == 1){
+            indexToTakeMessage = i;
+        }
+
+    }
+    message m = shm_param[queueNumber].messages[indexToTakeMessage];
 
     i = 0;
     while(i<19 && shm_param[queueNumber].messages[i+1].priority != -1){
