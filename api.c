@@ -11,15 +11,15 @@
   
 
 
+void getMemory(queue** shm_param){ 
 
-void getMemory(int *shmid_param, queue** shm_param){ 
-
-    if ((*shmid_param = shmget(shmKey, QUEUES_SIZE,  IPC_CREAT | 0777)) < 0) {
+    int shmid_tmp;
+    if ((shmid_tmp = shmget(shmKey, QUEUES_SIZE,  IPC_CREAT | 0777)) < 0) {
         perror("shmget");
        return;
     }
 
-    *shm_param = shmat(*shmid_param, NULL, 0);
+    *shm_param = shmat(shmid_tmp, NULL, 0);
 
 }
 
@@ -97,27 +97,42 @@ void semUp(int semid_param, int queueNumber){
 /*
 return index of newly inserted messages. If failed, returns -1;
 */
-int insertMessage(int queueNumber, queue* shm_param, message m){
+int insertMessage(int queueNumber, message m){
  ///polaczyc moment sprawdzenia wolnego miejsca i ewentualnego wstawienia wiadomosci
-    // semDown(semid);
+    
+    int semMutexId;
+    int semEmptyId;
+    int semFullId;
+
+    queue *shm;
+    
+    getMemory(&shm);
+    getSemaphores(&semMutexId, mutexKey);
+    getSemaphores(&semEmptyId, semEmptyKey);
+    getSemaphores(&semFullId, semFullKey);
+
+
+    semDown(semEmptyId, queueNumber);
+    semDown(semMutexId, queueNumber);
 
     int i, takenEntries = 0;
 
     for(i=0; i<20; i++){
-        if(shm_param[queueNumber].messages[i].priority != -1){
+        if(shm[queueNumber].messages[i].priority != -1){
             takenEntries++;
         };
     }
 
 
     if(takenEntries >= 20 ){
-        printf("Queue %d is full", queueNumber);
+        printf("%s is full\n", queueName[queueNumber]);
         return -1; //TODO should've wait on a semafore until consumer increases its value...
     }
 
-    shm_param[queueNumber].messages[takenEntries] = m;
+    shm[queueNumber].messages[takenEntries] = m;
 
-    // semUp(semid);
+    semUp(semMutexId, queueNumber);
+    semUp(semFullId, queueNumber);
 
     return takenEntries;
 }
@@ -136,8 +151,22 @@ char getRandomChar(int mode){
 
 
 //get and remove message at index 0 from queue 
-message getMessageFromQueue(int queueNumber, queue* shm_param){
-    // semDown(semid);
+message getMessageFromQueue(int queueNumber){
+    
+    int semMutexId;
+    int semEmptyId;
+    int semFullId;
+
+    queue *shm;
+    
+    getMemory(&shm);
+    getSemaphores(&semMutexId, mutexKey);
+    getSemaphores(&semEmptyId, semEmptyKey);
+    getSemaphores(&semFullId, semFullKey);
+
+
+    semDown(semFullId, queueNumber);    
+    semDown(semMutexId, queueNumber);
 
     int i=0, takenEntries = 0;
     // int normalPriorityPresent;
@@ -146,25 +175,26 @@ message getMessageFromQueue(int queueNumber, queue* shm_param){
 
     int indexToTakeMessage = 0;
     for(i = 0; i<=19; i++){
-        if(shm_param[queueNumber].messages[i].priority == 1){
+        if(shm[queueNumber].messages[i].priority == 1){
             indexToTakeMessage = i;
             break;
         }
     }
-    message m = shm_param[queueNumber].messages[indexToTakeMessage];
+    message m = shm[queueNumber].messages[indexToTakeMessage];
     printf("Removing message on index %d from %s: (%d %c%c%c)\n",indexToTakeMessage,queueName[queueNumber], m.priority, m.letter1, m.letter2, m.letter3);
 
 
     //moving other messages to the front of the queue:
     i = indexToTakeMessage;
-    while(i<19 && shm_param[queueNumber].messages[i+1].priority != -1){
-        shm_param[queueNumber].messages[i] = shm_param[queueNumber].messages[i+1]; 
-        shm_param[queueNumber].messages[i+1].priority = -1; //the last is empty
+    while(i<19 && shm[queueNumber].messages[i+1].priority != -1){
+        shm[queueNumber].messages[i] = shm[queueNumber].messages[i+1]; 
+        shm[queueNumber].messages[i+1].priority = -1; //the last is empty
         i++;
     }
 
 
-    // semUp(semid);
+    semUp(semMutexId, queueNumber);
+    semUp(semEmptyId, queueNumber);
 
     return m;
 }

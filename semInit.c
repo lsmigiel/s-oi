@@ -7,10 +7,7 @@
 #include <zconf.h>
 #include <stdbool.h>
 #include <time.h>
-// #include "data.h"
 #include "api.c"
-
-int shmid;
 
 //ID kolejnych trojek semaforow (po 1 dla kazdej kolejki z kazdego rodzaju)
 int semMutexId; 
@@ -23,10 +20,10 @@ queue *shm;
 void initializeQueues(int semMutexId, queue *shm_param);
 
 
-int main(int argc, char *argv[])
+int main()
 {
-    getMemory(&shmid, &shm);
-    getSemaphores(&semMutexId, mutexKey);
+    getMemory(&shm);
+    getSemaphores(&semMutexId, mutexKey);    
     getSemaphores(&semEmptyId, semEmptyKey);
     getSemaphores(&semFullId, semFullKey);
     

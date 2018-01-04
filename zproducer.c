@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
         m.letter1 = getRandomChar(0);
         m.letter2 = getRandomChar(0);
         m.letter3 = getRandomChar(0);
-        m.priority = 1;
+        m.priority = 2;
 
         // nieblokujace sprawdzenie
         if((index = insertMessage(queueNumber, m)) != -1){ //losowo wybrana kolejka
