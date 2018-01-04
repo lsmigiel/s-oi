@@ -17,5 +17,8 @@
 ./consumer 2 &  echo $!
 ./consumer 2 &  echo $!
 
-./sproducer & echo $!
-./sproducer & echo &!
+./sproducer 1 & echo $!
+./sproducer 1 & echo $!
+
+./zproducer
+./zproducer

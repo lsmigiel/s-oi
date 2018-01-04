@@ -12,15 +12,20 @@
 //running: ./producer queueNumber
 int main(int argc, char *argv[])
 {
+    if(argc != 2){printf("Specify queue nnumber: -1 for random queue, 0-2 for concrete\n"); return 0;}    
 
     int queueNumber;
-
+    int mode =  atoi(argv[1]);
+    queueNumber = mode;
+    
     int index;
-
     srand(time(NULL));
-
+    
     while(true){
-        queueNumber = QUEUE_A+rand() %3 ;//losowo wybrana kolejka
+
+        if(mode == -1){
+            queueNumber = QUEUE_A+rand() %3 ;//losowo wybrana kolejka
+        }
         message m;
         m.letter1 = getRandomChar(0);
         m.letter2 = getRandomChar(0);
